@@ -22,20 +22,20 @@ public class JMSProducer {
     // 默认连接密码
     private static final String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
 
-    // 默认连接地址(tcp：//localhost:61616)
+    // 默认连接地址 [tcp：//localhost:61616]
     private static final String BROKEURL = ActiveMQConnection.DEFAULT_BROKER_URL;
-    // private static final String BROKEURL = "tcp：//localhost:61616";
 
     // 发送的消息数量
     private static final int SENDNUM = 10;
 
     public static void main(String[] args) {
 
-        System.out.println(BROKEURL);
         // 第一步：建立 ConnectionFactory 工厂对象:
         // 需要填入用户名，密码，以及要连接的地址，这里都使用默认值。其中默认地址为：[tcp：//localhost:61616]
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USERNAME, PASSWORD, BROKEURL);
 
+        // 由于 Connection 没有实现 java.io.Closeable 接口
+        // 所以不能通过 try 语句简化 close 方法调用
         Connection connection = null;
 
         try {
@@ -49,8 +49,8 @@ public class JMSProducer {
             Session session = connection.createSession(true, Session.AUTO_ACKNOWLEDGE);
 
             // 第四步：通过 Session 创建 Destination 对象，该对象指定生产消息目标和消费消息来源。
-            // 在 PTP 模式中，Destination 被称作 Queue 即队列，
-            // 在 Pub/Sub 模式中，Destination 被称作 Topic 即主题,
+            // 在 PTP 模式中，Destination 被称作 Queue 即队列，一个消息只能被一个消费者接收。
+            // 在 Pub/Sub 模式中，Destination 被称作 Topic 即主题,一个消息可以被多个消费者接收。
             // 在程序中可以使用多个 Queue 和 Topic。
             Destination destination = session.createQueue("queue1");
 
@@ -87,6 +87,7 @@ public class JMSProducer {
      * @throws Exception
      */
     public static void sendMessage(Session session, MessageProducer messageProducer) throws Exception {
+
         for (int i = 0; i < SENDNUM; ++i) {
             // 创建一条文本消息，通过消息生产者发送
             TextMessage message = session.createTextMessage();
@@ -94,5 +95,8 @@ public class JMSProducer {
             messageProducer.send(message);
             System.out.println("发送消息：" + message.getText());
         }
+
+        // 不进行 commit 不会将消息发送到消息队列中去
+        session.commit();
     }
 }

@@ -21,7 +21,7 @@ public class JMSConsumer {
     // 默认连接密码
     private static final String PASSWORD = ActiveMQConnection.DEFAULT_PASSWORD;
 
-    // 默认连接地址(tcp：//localhost:61616)
+    // 默认连接地址 [tcp：//localhost:61616]
     private static final String BROKEURL = ActiveMQConnection.DEFAULT_BROKER_URL;
 
     public static void main(String[] args) {
@@ -30,6 +30,8 @@ public class JMSConsumer {
         // 需要填入用户名，密码，以及要连接的地址，这里都使用默认值。其中默认地址为：[tcp：//localhost:61616]
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(USERNAME, PASSWORD, BROKEURL);
 
+        // 由于 Connection 没有实现 java.io.Closeable 接口
+        // 所以不能通过 try 语句简化 close 方法调用
         Connection connection = null;
 
         try {
@@ -52,7 +54,7 @@ public class JMSConsumer {
             // MessageProducer/MessageConsumer。
             MessageConsumer messageConsumer = session.createConsumer(destination);
 
-            // 第七步：客户端使用 MessageConsumer 的 receive 方法接收数据
+            // 第六步：客户端使用 MessageConsumer 的 receive 方法接收数据
             recieveMessage(messageConsumer);
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,9 +78,9 @@ public class JMSConsumer {
      */
     public static void recieveMessage(MessageConsumer messageConsumer) throws Exception {
         while (true) {
-            TextMessage textMessage = (TextMessage) messageConsumer.receive();
-            if (textMessage != null) {
-                System.out.println("收到的消息:" + textMessage.getText());
+            TextMessage message = (TextMessage) messageConsumer.receive();
+            if (message != null) {
+                System.out.println("收到的消息:" + message.getText());
             } else {
                 break;
             }
